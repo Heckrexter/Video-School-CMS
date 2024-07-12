@@ -1,6 +1,6 @@
 log_type ={
-    0: 'login activity',
-    1: 'user management',
-    2: 'channel management',
-    3: 'video management',
+    0: 'Login',
+    1: 'User Management',
+    2: 'Channel Management',
+    3: 'Video Management',
 }

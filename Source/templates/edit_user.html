@@ -11,6 +11,7 @@
     document.addEventListener('DOMContentLoaded', function(){
         var user_type = {{ user[4] }};
         var status = {{ user[5] }};
+
         document.getElementById('user_type').value = user_type;
         document.getElementById('status').value = status;
     })
@@ -60,7 +61,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label" for="status">Status:</label>
-                <select class="form-control" name="status" value="{{ user[5] }}" required>
+                <select class="form-control" name="status" required>
                     <option value="0">Active</option>
                     <option value="1">Inactive</option>
                 </select>

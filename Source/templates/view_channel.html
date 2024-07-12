@@ -48,10 +48,10 @@
         <p>Channel Platform: {{ platform[channel[2]] }}</p>
         <p>Assigned Users:-</p>
         <ul>
-            <p>Manager: {{ users[channel[5]] }}</p>
-            <p>Ops: {{ users[channel[6]] }}</p>
             <p>Creator: {{ users[channel[3]] }}</p>
             <p>Editor: {{ users[channel[4]] }}</p>
+            <p>Ops: {{ users[channel[6]] }}</p>
+            <p>Manager: {{ users[channel[5]] }}</p>
         </ul>
     
         <h1>Videos table:-</h1>
@@ -105,9 +105,10 @@
                 {% endfor %}
             </tbody>
         </table>
-        
+        {% if sessionvar['user_type'] < 3 and sessionvar['user_type']!= 4 %}
         <a class="btn btn-primary" href="{{url_for('add_video', channel_id=channel[0]) }}">Add Video</a>
         <br><br>
+        {% endif %}
         <a class="btn btn-primary" href="{{url_for('view_channel_stats',channel_id=channel[0])}}">Click to view channel statistics</a>
 
         {# MODAL DEFINITION #}

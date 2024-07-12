@@ -40,8 +40,8 @@ sqlcommands = [
 
     # add two test channels
     ## DEBUGGING ONLY
-    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel1', 0, 5, 4, 2, 3, 0)",
-    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel2', 0, 5, 4, 2, 3, 0)",
+    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel1', 0, 11, 8, 2, 5, 0)",
+    "INSERT INTO Channel (name, platform, creator_id, editor_id, manager_id, ops_id, status) VALUES ('testchannel2', 0, 11, 8, 2, 5, 0)",
     # create video table if it doesn't exists
     ## ADD URL TO VIDEO TABLE
     "CREATE TABLE Video (id INT AUTO_INCREMENT PRIMARY KEY, old_id VARCHAR(6) UNIQUE, title VARCHAR(255) UNIQUE NOT NULL, url VARCHAR(255),channel_id INT NOT NULL, shoot_timestamp INT, edit_timestamp INT, upload_timestamp INT, status TINYINT NOT NULL DEFAULT 0, comment LONGTEXT DEFAULT NULL)",

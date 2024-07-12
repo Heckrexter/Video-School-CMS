@@ -1,3 +1,5 @@
+import time
+
 # function to turn credentials object into dictionary
 def credtodict(cred):
     return {
@@ -17,3 +19,9 @@ def format_string(stringa):
             stringa = stringa.replace(i, "\'")
         if i == "\\":
             stringa = stringa.replace(i, "\\\\")
+
+def Epoch_to_Date(epoch, type):
+    if type == 'date':
+        return time.strftime('%Y-%m-%d', time.localtime(epoch))
+    elif type == 'datetime':
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch))

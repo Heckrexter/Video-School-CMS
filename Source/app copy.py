@@ -319,6 +319,7 @@ def add_user():
                     'user_id': session['user_id'],
                     'user_type': session['user_type']
                 }
+                print(request.form.to_dict())
                 result = vidschool.add_user(request.form.to_dict(), author)
                 if result!=True:
                     return render_template('add_user.html', msg=result)
@@ -524,4 +525,5 @@ def oauth2callback():
 
 # Main entry point of the application
 if __name__ == '__main__':
+    vidschool.setupdb()
     app.run(debug=True, port=8089,host='localhost')                                            # Run the Flask application in debug mode

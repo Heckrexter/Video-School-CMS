@@ -5,6 +5,7 @@ import mysql.connector
 import time
 import api_functions as api_functions
 import extrafunc
+from genlogenum import log_type
 
 from rep_var import *
 
@@ -12,22 +13,9 @@ class VidSchool:
     # constructor function
     def __init__(self, dbhost, dbusername, dbpassword, dbname):
         print("Object initialized NOW")
-        self.dbconnect = mysql.connector.connect(
-            host = dbhost,
-            user = dbusername,
-            password = dbpassword
-        )
-        self.cursor = self.dbconnect.cursor()
-        self.dbname = dbname
-        self.sqlcommands = [
-            "USE  {}".format(dbname),
-            ]
-        print("Connected to database")
-        if self.dbconnect.is_connected():
-            self.setupdb()
+        self.db_controller = Db_operator(dbhost, dbusername, dbpassword, dbname)
         VidSchool.credentialpool = {}
         VidSchool.start_credential_pool(self)
-        self.db_controller = Db_operator(dbhost, dbusername, dbpassword, dbname)
     
     # destructor function
     def __del__(self):
@@ -93,9 +81,8 @@ class VidSchool:
 
     ### USER FUNCTIONS
     # function to add a user to the database ONLY FOR ADMIN
-    ### UPDATED FUNCTION
+    
     def add_user(self,request, author):
-        print("Adding user new")
         if author['user_type'] == USER_TYPE_ADMIN:
             User = self.db_controller.AddToUser(request['user_name'], request['user_email'], self.hash_password(request['password']), int(request['user_type']), USER_ACTIVE)
             if User.__contains__("error"):
@@ -113,40 +100,9 @@ class VidSchool:
             self.log_action(LOG_USER, log_data)
             return True
         else:
-            return "You do not have permission to add users"    
-    # def add_user(self,request, author):
-    #     # checks permission
-    #     if author['user_type'] == USER_TYPE_ADMIN:
-    #         # hash password
-    #         user_name = request['user_name']
-    #         user_email = request['user_email']
-    #         password = request['password']
-    #         user_type = request['user_type']
-    #         hashpass = self.hash_password(password)
-    #         # executes SQL command
-    #         sql = "INSERT INTO User (name, email, password, role, status) VALUES (%s, %s, %s, %s, 0)"
-    #         val = (user_name, user_email, hashpass, user_type)
-    #         self.cursor.execute(sql, val)
-    #         self.dbconnect.commit()
-    #         self.cursor.execute("SELECT ID FROM User WHERE email = %s AND password = %s", (user_email, hashpass))
-    #         user = self.cursor.fetchone()
-    #         # Logging
-    #         log_data = {
-    #             "action": "add_user",
-    #             "author_id": author['user_id'],
-    #             "data" : {
-    #                 "user_id": user[0],
-    #                 "user_email": user_email,
-    #                 "user_type": user_type
-    #             }
-    #         }
-    #         self.log_action(1, log_data)
-    #         return True
-    #     else:
-    #         return "You do not have permission to add users"
+            return "You do not have permission to add users"
 
     # sets user to INACTIVE
-    ### UPDATED FUNCTION
     def delete_user(self, user_id, author):
         if author['user_type'] == USER_TYPE_ADMIN:
             print('new delete user function')
@@ -154,7 +110,6 @@ class VidSchool:
             if user[4] == USER_TYPE_ADMIN:
                 return "You cannot delete the admin user"
             result = self.db_controller.UpdateUser(user[0], user[1], user[2], user[4], USER_INACTIVE)
-            print("Result: ", result)
             if result == True:
                 log_data = {
                     "action": "Delete_User",
@@ -171,53 +126,56 @@ class VidSchool:
                 return result
         else:
             return "You do not have permission to delete this user"
-    # def delete_user( self, user_id, author):
-    #     # checks permissions
-    #     if author['user_type'] == USER_TYPE_ADMIN:
-    #         user = self.get_user(user_id)
-    #         if user[4] == 0:
-    #             return "You cannot delete the admin user"
-    #         # executes SQL command
-    #         sql = "UPDATE User SET status = 1 WHERE ID = %s"
-    #         val = (user_id,)
-    #         self.cursor.execute(sql, val)
-    #         self.dbconnect.commit()
-    #         # Logging
-    #         log_data = {
-    #             "action": "delete_user",
-    #             "author_id": author['user_id'],
-    #             "data" : {
-    #                 "user_id": user_id
-    #             }
-    #         }
-    #         self.log_action(1, log_data)
-    #         return True
-    #     else:
-    #         return "You do not have permission to delete this user"
 
-    # function to get all users in the database
-    def get_users(self, author):
+
+    def olddelete_user( self, user_id, author):
         # checks permissions
         if author['user_type'] == USER_TYPE_ADMIN:
+            user = self.get_user(user_id)
+            if user[4] == 0:
+                return "You cannot delete the admin user"
             # executes SQL command
-            sql = "SELECT * FROM User"
-            self.cursor.execute(sql)
-            result = self.cursor.fetchall()
-            return result
+            sql = "UPDATE User SET status = 1 WHERE ID = %s"
+            val = (user_id,)
+            self.cursor.execute(sql, val)
+            self.dbconnect.commit()
+            # Logging
+            log_data = {
+                "action": "delete_user",
+                "author_id": author['user_id'],
+                "data" : {
+                    "user_id": user_id
+                }
+            }
+            self.log_action(1, log_data)
+            return True
+        else:
+            return "You do not have permission to delete this user"
+
+
+    # function to get all users in the database
+    # NEW
+    def get_users(self, author):
+        if author['user_type'] == USER_TYPE_ADMIN:
+            Users = self.db_controller.GetUsers()
+            return Users
         else:
             return "You do not have permission to view this data"
     
     def get_users_by_role(self, user_type):
-        # checks permissions
-        # executes SQL command
-        sql = "SELECT * FROM User WHERE role = %s and status = 0"
-        val = (user_type,)
-        self.cursor.execute(sql, val)
-        result = self.cursor.fetchall()
-        return result
+        Users = self.db_controller.GetUsers()
+        role_users = []
+        for user in Users:
+            if user[4] == user_type:
+                role_users.append(user)
+        return role_users
+
+    def get_user(self, user_id):
+        User = self.db_controller.GetUser(user_id)
+        return User
 
     # function to get a specific user from the database
-    def get_user(self, user_id):
+    def oldget_user(self, user_id):
         # executes SQL command
         sql = "SELECT * FROM User WHERE ID = %s"
         val = (user_id,)
@@ -436,7 +394,6 @@ class VidSchool:
             return {
                 "error": "You do not have permission to delete this video"
             }
-    
     # function to get all videos from the database
     def get_videos(self):
         # executes SQL command
@@ -789,7 +746,6 @@ class VidSchool:
                 }
             }
             self.log_action(2, log_data)
-    
     # gets all channels from the database
     def get_channels(self):
         # executes SQL command
@@ -888,7 +844,6 @@ class VidSchool:
             }
         
     # log every action
-    # updated function
     def log_action(self, log_type, log_data, log_time = int( time.time() )):
         # converts log_data to JSON
         log_data = json.dumps(log_data)
@@ -898,17 +853,29 @@ class VidSchool:
         else:
             return result
 
-    # def log_action(self, log_type, log_data, log_time = int( time.time() )):
-    #     # converts log_data to JSON
-    #     log_data = json.dumps(log_data)
-    #     # executes SQL command
-    #     sql = "INSERT INTO Log_Table (type, date, data) VALUES (%s, %s, %s)"
-    #     val = (log_type, log_time, log_data)
-    #     self.cursor.execute(sql, val)
-    #     self.dbconnect.commit()
+    def oldlog_action(self, log_type, log_data, log_time = int( time.time() )):
+        # converts log_data to JSON
+        log_data = json.dumps(log_data)
+        # executes SQL command
+        sql = "INSERT INTO Log_Table (type, date, data) VALUES (%s, %s, %s)"
+        val = (log_type, log_time, log_data)
+        self.cursor.execute(sql, val)
+        self.dbconnect.commit()
+
+    def get_logs(self):
+        logs = self.db_controller.GetLogs()
+        final_logs = []
+        for log in list(logs):
+            final_logs.append(
+                int(log[0]),
+                log_type[int(log[1])],
+                extrafunc.Epoch_to_Date(log[2],'datetime'),
+                ast.literal_eval(log[3].replace("null", "None"))
+            )
+        return final_logs
 
     # get all logs
-    def get_logs(self):
+    def oldget_logs(self):
         # executes SQL command
         sql = "SELECT * FROM Log_Table"
         self.cursor.execute(sql)
@@ -931,7 +898,6 @@ class Db_operator:
             user = dbusername,
             password = dbpassword
         )
-        self.dbconnect.database = dbname
         self.cursor = self.dbconnect.cursor()
         self.dbname = dbname
         self.sqlcommands = [
@@ -1017,9 +983,9 @@ class Db_operator:
                 "error": str(e)
             }
     
-    def UpdateUser(self, user_id, user_name, user_email, role, status):
-        sql = "UPDATE User SET name = %s, email = %s, role = %s, status = %s WHERE id = %s"
-        val = (user_name, user_email, role, status, user_id)
+    def UpdateUser(self, user_id, user_name, user_email, password, role, status):
+        sql = "UPDATE User SET name = %s, email = %s, password = %s, role = %s, status = %s WHERE id = %s"
+        val = (user_name, user_email, password, role, status, user_id)
         self.cursor.execute(sql, val)
         self.dbconnect.commit()
         return True
